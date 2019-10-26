@@ -17,7 +17,7 @@ exec: Simulation
 
 clean:
 	rm -rf Simulation
-	rm -rf Simulation.h.gch
+	rm -rf simulation.h.gch
 	rm -rf buffer.h.gch
 	rm -rf *.ascii
 	rm -rf ${output}

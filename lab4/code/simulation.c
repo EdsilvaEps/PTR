@@ -87,3 +87,21 @@ Matrix simulate(double t, Matrix u){
   return res;
 
 }
+
+/*
+  computa parcialmente a função do ponto da frente do robô
+  dado pela função Yf(t) = X(t) + point*X(t)
+*/
+Matrix simulate2(double t, double d, Matrix u){
+
+  Matrix point = matrix_zeros("point", 3, 3);
+  point.values[0][0] = 0.5*d*cos(t);
+  point.values[1][1] = 0.5*d*cos(t);
+  point.values[2][2] = 0.5*d*cos(t);
+
+  Matrix pos = getPosition(t, t-1);
+  Matrix res = matrix_mult(point, matrix_mult(pos, u));
+
+  return res;
+
+}

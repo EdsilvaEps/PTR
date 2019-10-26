@@ -62,4 +62,11 @@ Matrix getPosition(double t, double prev_t);
 */
 Matrix simulate(double t, Matrix u);
 
+/*
+  computa parcialmente a função do ponto da frente do robô
+  dado pela função Yf(t) = X(t) + [0.5*Dcos(t) 0 0]'*X(t)
+*/
+Matrix simulate2(double t, double d, Matrix u);
+
+
 #endif
