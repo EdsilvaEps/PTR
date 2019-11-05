@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
+#include <time.h>
 
 // TODO: mudar a função da frente do robô
 
@@ -245,9 +246,15 @@ void initializeAll(){
 
 int main(int argc, char const *argv[]) {
 
-  char path[100];
+  clock_t start_t, end_t;
+  struct timespec start, finish;
+  double elapsed;
 
-  //FILE* arquivo;
+  // contagem de tempo em segundos e em pulsos de clock
+  clock_gettime(CLOCK_MONOTONIC, &start);
+  start_t = clock();
+
+  char path[100];
 
   // se o usuario não colocou um nome de arquivo
   if( argc != 2){
@@ -266,6 +273,8 @@ int main(int argc, char const *argv[]) {
   pthread_create(&task1_thread, NULL, task1, NULL);
   pthread_create(&task2_thread, NULL, task2, NULL);
 
+  printf("Inicio do programa, clocks = %ld\n", start_t);
+
 
   float t;
   while(t < 20){
@@ -274,6 +283,19 @@ int main(int argc, char const *argv[]) {
     usleep(SLEEP_TASK_2*1000);
 
   }
+
+
+  clock_gettime(CLOCK_MONOTONIC, &finish);
+  elapsed = (finish.tv_sec - start.tv_sec);
+  elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+
+
+  end_t = clock();
+  printf("Fim do programa, clocks = %ld\n", end_t);
+
+  double total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
+  printf("Tempo total de execução %f\n", elapsed);
+  printf("Tempo de CPU: %f\n", total_t);
 
   fclose(arquivo);
 
