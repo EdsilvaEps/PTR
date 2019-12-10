@@ -103,7 +103,7 @@ Matrix getRef(double time);
 
 */
 
-Matrix getSimYmdot(Matrix alpha, Matrix ref, double time);
+Matrix getSimYmdot(Matrix ym, Matrix ref, double time);
 
 /*
   getSimLimSpeed gera uma matrix v(t):
@@ -113,7 +113,7 @@ Matrix getSimYmdot(Matrix alpha, Matrix ref, double time);
 
 */
 
-Matrix getSimV(Matrix ym, Matrix ymdot, Matrix y, Matrix alpha);
+Matrix getSimV(Matrix ym, Matrix ymdot, Matrix y);
 
 /*
   getSimy gera a matriz y(t):
@@ -138,6 +138,19 @@ Matrix getSimY(Matrix x, double radius);
 */
 
 Matrix getSimX(Matrix u, double time);
+
+// função da thread que calcula Ym e Ymdot
+void modeloRefTask( void *args );
+
+// função da thread que calcula v(t)
+void ControleTask( void *args );
+
+// função da thread que calcula u(t)
+void LinearizacaoTask( void *args );
+
+// função da thread que calcula Y e X, saidas do sistema
+void RoboTask( void *args );
+
 
 
 
