@@ -30,6 +30,8 @@ pthread_t task1_thread;
 pthread_t task2_thread;
 
 FILE* arquivo;
+FILE* thread1_timelog;
+FILE* thread2_timelog;
 
 
 /*
@@ -42,7 +44,10 @@ void *task1(  void *args  ){
   Matrix speed;
   Matrix output;
 
-  //FILE* arquivo = (FILE*)args;
+  // criar variaveis como esse em cada thread não é o
+  // melhor jeito de se fazer as coisas, mas estou com pressa :D
+  struct timespec start, finish;
+  double elapsed;
 
   float t = 0;
   while(t < 20){
@@ -80,19 +85,7 @@ void *task1(  void *args  ){
     pthread_mutex_lock(&mutex);
 
     // pega o dado mais atual do buffer e soma com X(t) anterior
-    output = matrix_add(output, outputBuffer.data[(outputBuffer.counter-1)]);
-
-    double v = speed.values[0][0];
-    double w = speed.values[1][0];
-    double xc = output.values[0][0];
-    double yc = output.values[1][0];
-    double theta = output.values[2][0];
-
-    // printa tudo na tela
-    printf("t: %4.3f | v: %4.3f | w: %4.3f | Xc: %4.3f | Yc: %4.3f | theta: %4.3f \n",t, v, w, xc, yc, theta);
-
-    // printa tudo no arquivo
-    fprintf(arquivo, " %f , %f , %f , %f , %f , %f\n",t, v, w, xc, yc, theta);
+    output = outputBuffer.data[(outputBuffer.counter-1)];
 
     // remove o item do buffer
     if(removeItem(&outputBuffer, &output)){
@@ -107,16 +100,36 @@ void *task1(  void *args  ){
     // sinaliza buffer vazio
     sem_post(&output_empty);
 
+    double v = speed.values[0][0];
+    double w = speed.values[1][0];
+    double xc = output.values[0][0];
+    double yc = output.values[1][0];
+    double theta = output.values[2][0];
+
+    // printa tudo na tela
+    printf("t: %4.3f | v: %4.3f | w: %4.3f | Xc: %4.3f | Yc: %4.3f | theta: %4.3f \n",t, v, w, xc, yc, theta);
+
+    // printa tudo no arquivo
+    fprintf(arquivo, " %f , %f , %f , %f , %f , %f\n",t, v, w, xc, yc, theta);
+
+
+
     //************************************************
 
-
-
+    // precisamos medir o tempo que a thread leva para
+    // ser novamente agendada, para isso contamos o tempo
+    // usando clock_gettime
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
     // usleep suspende a thread por um tempo x em microssegundos
+    t += 0.03; // 30 ms
     usleep(SLEEP_TASK_1*1000);
 
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    fprintf(thread1_timelog, "%f\n", elapsed);
 
-    t += 0.03; // 30 ms
 
   }
 
@@ -132,7 +145,10 @@ roda em um intervalo de 50 ms. Thread produtora-consumidora.
 void *task2( void *args  ){
 
   Matrix speed;
-  Matrix output;
+  Matrix output = matrix_zeros("pos", 3, 1);
+
+  struct timespec start, finish;
+  double elapsed;
 
 
   float t = 0;
@@ -152,9 +168,9 @@ void *task2( void *args  ){
 
     // retira o valor de velocidade mais atual do buffer
     // e calcula o output.
-
     speed = speedBuffer.data[(speedBuffer.counter-1)];
-    output = simulate2(t, DIAMETER, speed);
+    output = matrix_add(output, simulate2(t, DIAMETER, speed));
+    //output = simulate2(t, DIAMETER, speed);
 
     if(removeItem(&speedBuffer, &speed)){
 
@@ -197,12 +213,16 @@ void *task2( void *args  ){
     //************************************************
 
 
-
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
     // usleep suspende a thread por um tempo SLEEP_TASK_2 em microssegundos
+    t += 0.05; // 50 ms
     usleep(SLEEP_TASK_2*1000);
 
-    t += 0.05; // 50 ms
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    fprintf(thread2_timelog, "%f\n", elapsed);
 
 
   }
@@ -268,12 +288,19 @@ int main(int argc, char const *argv[]) {
 
   }
 
+  thread1_timelog = fopen("task1_time.txt", "w+");
+  thread2_timelog = fopen("task2_time.txt","w+");
+
   initializeAll();
+
+  printf("Inicio do programa, clocks = %ld\n", start_t);
 
   pthread_create(&task1_thread, NULL, task1, NULL);
   pthread_create(&task2_thread, NULL, task2, NULL);
 
-  printf("Inicio do programa, clocks = %ld\n", start_t);
+  //pthread_join(task1_thread, NULL);
+  //pthread_join(task2_thread, NULL);
+
 
 
   float t;
@@ -298,6 +325,8 @@ int main(int argc, char const *argv[]) {
   printf("Tempo de CPU: %f\n", total_t);
 
   fclose(arquivo);
+  fclose(thread1_timelog);
+  fclose(thread2_timelog);
 
 
   return 0;

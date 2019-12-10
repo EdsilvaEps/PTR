@@ -16,6 +16,7 @@ double integral(double (*f)(double), double t, double prev_t){
 }
 
 
+
 /*
    processa a resposta de velocidade do robô de acordo com a
    variável de tempo fornecida. Retorna uma matriz do formato
@@ -79,7 +80,13 @@ Matrix getPosition(double t, double prev_t){
 */
 Matrix simulate(double t, Matrix u){
 
-  Matrix pos = getPosition(t, t-1);
+  double curr_angle = u.values[1][1];
+  Matrix pos;
+
+  if(t == 10){
+    pos = getPosition(curr_angle, curr_angle*(-1));
+  } else pos = getPosition(curr_angle, curr_angle);
+
   Matrix id = matrix_identity("id", 3, 3);
 
   Matrix res = matrix_mult(id, matrix_mult(pos, u));
@@ -96,8 +103,8 @@ Matrix simulate2(double t, double d, Matrix u){
 
   Matrix point = matrix_zeros("point", 3, 3);
   point.values[0][0] = 0.5*d*cos(t);
-  point.values[1][1] = 0.5*d*cos(t);
-  point.values[2][2] = 0.5*d*cos(t);
+  point.values[1][1] = 0.5*d*sin(t);
+  point.values[2][2] = 1;
 
   Matrix pos = getPosition(t, t-1);
   Matrix res = matrix_mult(point, matrix_mult(pos, u));
