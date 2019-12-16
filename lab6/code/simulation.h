@@ -11,10 +11,15 @@
 
 #include "matrix.h"
 #include <stdio.h>
-#include <math.h>
-#include "monitors.h"
+#include <string.h>
+#include <pthread.h>
+#include <semaphore.h>
 #include <unistd.h>
 #include <time.h>
+#include <math.h>
+#include "monitors.h"
+
+
 
 
 #ifndef _SIMULATION_H
@@ -24,7 +29,7 @@
 #define PI 3.14159265358979323846
 // TODO: perguntar do prof que raios é alpha
 #define ALPHA1 1
-#define ALPHA2 2
+#define ALPHA2 1
 #define RADIUS 0.3
 
 
@@ -94,7 +99,7 @@ Matrix getSimYdot(Matrix u, Matrix x, double radius);
   com os valores de referencia para x e y
 
 */
-Matrix getRef(double time);
+Matrix getSimRef(double time);
 
 /*
   getSimYmdot gera uma matrix :
@@ -127,6 +132,20 @@ Matrix getSimV(Matrix ym, Matrix ymdot, Matrix y);
 Matrix getSimY(Matrix x, double radius);
 
 /*
+  getSimU gera uma matrix u(t):
+
+  L^-1(x)v(t)
+
+  onde L^-1(x) é a matrix inversa de
+
+  | cos(x3) -Rsin(x3) |
+  | sin(x3)  Rcos(x3) |
+
+*/
+Matrix getSimU(Matrix x, Matrix v);
+
+
+/*
   getSimX gera a matriz x(t):
     | u1*sin(x3)  |
     | u1*cos(x3)  |
@@ -139,17 +158,20 @@ Matrix getSimY(Matrix x, double radius);
 
 Matrix getSimX(Matrix u, double time);
 
+Matrix getSimYm(Matrix ymptoAtual, Matrix ymptoAntigo, double time, double prevTime);
+
+
 // função da thread que calcula Ym e Ymdot
-void modeloRefTask( void *args );
+void *modeloRefTask( void *args );
 
 // função da thread que calcula v(t)
-void ControleTask( void *args );
+void *ControleTask( void *args );
 
 // função da thread que calcula u(t)
-void LinearizacaoTask( void *args );
+void *LinearizacaoTask( void *args );
 
 // função da thread que calcula Y e X, saidas do sistema
-void RoboTask( void *args );
+void *RoboTask( void *args );
 
 
 

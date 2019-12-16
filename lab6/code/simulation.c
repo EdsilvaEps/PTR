@@ -1,6 +1,5 @@
 #include "simulation.h"
-#include <stdio.h>
-#include <math.h>
+
 
 /* calcula a integral utilizando o método trapezoidal
    com iterações continuas.
@@ -148,7 +147,7 @@ Matrix getSimY(Matrix x, double radius){
 
   if(x.m == 3 && x.n == 1){
 
-    double x3 = x.values[3][0];
+    double x3 = x.values[2][0];
 
     /*
       | 1 0 0 |
@@ -180,7 +179,8 @@ Matrix getSimY(Matrix x, double radius){
 Matrix getSimYdot(Matrix u, Matrix x, double radius){
 
   Matrix ydot = matrix_zeros("ydot", 2 , 2);
-  double x3 = x.values[3][0];
+  Matrix ydot_out = matrix_zeros("ydot", 2 , 1);
+  double x3 = x.values[2][0];
 
 
   ydot.values[0][0] = cos(x3);
@@ -188,9 +188,9 @@ Matrix getSimYdot(Matrix u, Matrix x, double radius){
   ydot.values[0][1] = (-1)*radius*sin(x3);
   ydot.values[1][1] =  radius*cos(x3);
 
-  ydot = matrix_mult(ydot, u);
+  ydot_out = matrix_mult(ydot, u);
 
-  return ydot;
+  return ydot_out;
 
 }
 
@@ -201,11 +201,11 @@ Matrix getSimYdot(Matrix u, Matrix x, double radius){
   com os valores de referencia para x e y
 
 */
-Matrix getRef(double time){
+Matrix getSimRef(double time){
 
   Matrix ref = matrix_zeros("ref", 2, 1);
   ref.values[0][0] = (5/PI)*cos(0.2*PI*time);
-  ref.values[1][0] = (time < 10) ? ((5/PI)*cos(0.2*PI*time)) : ((-5/PI)*cos(0.2*PI*time));
+  ref.values[1][0] = (time < 10) ? ((5/PI)*sin(0.2*PI*time)) : ((-5/PI)*sin(0.2*PI*time));
 
   return ref;
 }
@@ -219,7 +219,6 @@ Matrix getRef(double time){
 
 Matrix getSimYmdot(Matrix ym, Matrix ref, double time){
 
-  double np = 2.71828; // constante de euler
 
   Matrix ymdot = matrix_zeros("ymdot", 2, 1);
   double xref = ref.values[0][0];
@@ -235,15 +234,20 @@ Matrix getSimYmdot(Matrix ym, Matrix ref, double time){
 
 }
 
-Matrix getSimYm(double time){
+Matrix getSimYm(Matrix ymptoAtual, Matrix ymptoAntigo, double time, double prevTime){
 
   double np = 2.71828; // constante de euler
+  double ymxPtoAtual = ymptoAtual.values[0][0];
+  double ymyPtoAtual = ymptoAtual.values[1][0];
+
+  double ymxPtoAntigo = ymptoAntigo.values[0][0];
+  double ymyPtoAntigo = ymptoAntigo.values[1][0];
+
   Matrix ym = matrix_zeros("ym", 2, 1);
 
-  // valores de Ymx e Ymy calculados a partir da
-  // transformada inversa de G(s) = alpha / (s + alpha);
-  double Ymx = ALPHA1*pow(np,(-ALPHA1*time));
-  double Ymy = ALPHA2*pow(np,(-ALPHA2*time));
+  double Ymx = ((ymxPtoAtual + ymxPtoAntigo)*(time - prevTime))/2;
+  double Ymy = ((ymyPtoAtual + ymyPtoAntigo)*(time - prevTime))/2;
+
 
   ym.values[0][0] = Ymx;
   ym.values[1][0] = Ymy;
@@ -261,6 +265,10 @@ Matrix getSimYm(double time){
 */
 
 Matrix getSimV(Matrix ym, Matrix ymdot, Matrix y){
+  printf("getsimv\n" );
+  printf("%f\n", ym.values[0][0]);
+  printf("%f\n", ym.values[1][0]);
+
 
   Matrix v = matrix_zeros("v", 2, 1);
 
@@ -280,56 +288,121 @@ Matrix getSimV(Matrix ym, Matrix ymdot, Matrix y){
 
 }
 
+/*
+  getSimU gera uma matrix u(t):
+
+  L^-1(x)v(t)
+
+  onde L^-1(x) é a matrix inversa de
+
+  | cos(x3) -Rsin(x3) |
+  | sin(x3)  Rcos(x3) |
+
+*/
+Matrix getSimU(Matrix x, Matrix v){
+
+  Matrix u = matrix_zeros("u", 2, 1);
+  Matrix invL = matrix_zeros("invL", 2, 2);
+
+
+  double x3 = x.values[2][0];
+  double den = (pow(sin(x3),2) + pow(cos(x3), 2));
+
+  // matrix inversa de L(x)
+  invL.values[0][0] = (cos(x3)/den);
+  invL.values[1][0] = (-1)*sin(x3)/(RADIUS*den);
+  invL.values[0][1] = sin(x3)/den;
+  invL.values[1][1] = cos(x3)/(RADIUS*den);
+
+
+  u = matrix_mult(invL, v);
+
+  return u;
+
+
+
+}
+
+
 // função da thread que calcula Ym e Ymdot
 
-void modeloRefTask( void *args ){
+void *modeloRefTask( void *args ){
+
+  printf("modelo ref task\n" );
 
   float delay = 0.05; // 50ms
-  Matrix ref, ym, ymdot;
-  struct timespec start, finish;
-  double elapsed;
+  Matrix ref, ym, oldYmdot, newYmdot;
+  struct timespec start_t1, finish_t1;
+  double elapsed_t1;
 
 
   float t = 0;
   while(t < 20){
 
     // entrada da thread: referencia
-    ref = getRef(t);
+
+    ref = getRef();
+    ym = getYm();
+    printf("modeloRefThread t:  %f\n", t);
+    printf("ref\n");
+    printf("%f\n", ref.values[0][0]);
+    printf("%f\n", ref.values[1][0]);
+
 
     // saidas da thread: ym e ymdot
-    ym = getSimYm(t);
+    oldYmdot = getYmdot(); // pegando ymdot antigo p/ calcular ym
+    newYmdot = getSimYmdot(ym, ref, t); // calculando ympto atual
+    ym = getSimYm(newYmdot, oldYmdot, t, t-delay); // calculando ym
+    /*
+    printf("ym\n");
+    printf("%f\n", ym.values[0][0]);
+    printf("%f\n", ym.values[1][0]);
+
+    printf("ymdot\n");
+    printf("%f\n", newYmdot.values[0][0]);
+    printf("%f\n", newYmdot.values[1][0]);
+    */
     setYm(ym);
-    setYmdot(getSimYmdot(ym, ref, t));
+    setYmdot(newYmdot);
+    /*sem_wait(&ym_empty);
+    pthread_mutex_lock(&mutexU);
+      Ym = ym;
+    pthread_mutex_unlock(&mutexU);
+    sem_post(&ym_full);
+    */
+    //setYmdot(newYmdot);
 
     // precisamos medir o tempo que a thread leva para
     // ser novamente agendada, para isso contamos o tempo
     // usando clock_gettime
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    clock_gettime(CLOCK_MONOTONIC, &start_t1);
 
     // usleep suspende a thread por um tempo x em microssegundos
     t += delay;
-    usleep(delay*1000);
+    usleep(50*1000);
 
-    clock_gettime(CLOCK_MONOTONIC, &finish);
-    elapsed = (finish.tv_sec - start.tv_sec);
-    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    clock_gettime(CLOCK_MONOTONIC, &finish_t1);
+    elapsed_t1 = (finish_t1.tv_sec - start_t1.tv_sec);
+    elapsed_t1 += (finish_t1.tv_nsec - start_t1.tv_nsec) / 1000000000.0;
     //fprintf(thread1_timelog, "%f\n", elapsed);
     // TODO: open a file for this thread's timing
 
 
   }
 
-  //return NULL;
+  return NULL;
 
 }
 
-
 // função da thread que calcula v(t)
 
-void ControleTask( void *args ){
+void *ControleTask( void *args ){
+
+  printf("controle task\n" );
+
 
   float delay = 0.05; // 50ms
-  Matrix ym, ymdot, y, v;
+  Matrix ym, ymdot, y;
   struct timespec start, finish;
   double elapsed;
 
@@ -352,7 +425,7 @@ void ControleTask( void *args ){
 
     // usleep suspende a thread por um tempo x em microssegundos
     t += delay;
-    usleep(delay*1000);
+    usleep(50*1000);
 
     clock_gettime(CLOCK_MONOTONIC, &finish);
     elapsed = (finish.tv_sec - start.tv_sec);
@@ -363,26 +436,66 @@ void ControleTask( void *args ){
 
   }
 
-  //return NULL;
+  return NULL;
 
 }
 
 
 // função da thread que calcula u(t)
 
-void LinearizacaoTask( void *args ){
+void *LinearizacaoTask( void *args ){
 
-  // TODO: calcular u(t)
+  printf("linearizacao task\n" );
+
+
+  float delay = 0.04; // 40ms
+  Matrix x, v;
+  struct timespec start, finish;
+  double elapsed;
+
+
+  float t = 0;
+  while(t < 20){
+
+    // entrada do sistema: x e v
+    v = getV();
+    x = getX();
+
+    // saida do sistema: u
+    setU(getSimU(x, v));
+
+    // precisamos medir o tempo que a thread leva para
+    // ser novamente agendada, para isso contamos o tempo
+    // usando clock_gettime
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
+    // usleep suspende a thread por um tempo x em microssegundos
+    t += delay;
+    usleep(40*1000);
+
+    clock_gettime(CLOCK_MONOTONIC, &finish);
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    //fprintf(thread1_timelog, "%f\n", elapsed);
+    // TODO: open a file for this thread's timing
+
+
+  }
+
+  return NULL;
+
 
 }
 
 
-// função da thread que calcula Y e X, saidas do sistema 
+// função da thread que calcula Y e X, saidas do sistema
 
-void RoboTask( void *args ){
+void *RoboTask( void *args ){
+
+  printf("robot thread\n");
 
   float delay = 0.03; // 50ms
-  Matrix u, x, y;
+  Matrix u, x;
   struct timespec start, finish;
   double elapsed;
 
@@ -406,7 +519,7 @@ void RoboTask( void *args ){
 
     // usleep suspende a thread por um tempo x em microssegundos
     t += delay;
-    usleep(delay*1000);
+    usleep(30*1000);
 
     clock_gettime(CLOCK_MONOTONIC, &finish);
     elapsed = (finish.tv_sec - start.tv_sec);
@@ -417,6 +530,6 @@ void RoboTask( void *args ){
 
   }
 
-  //return NULL;
+  return NULL;
 
 }

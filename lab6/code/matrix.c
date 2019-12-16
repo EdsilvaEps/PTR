@@ -24,7 +24,7 @@ void matrix_print(Matrix mat){
       }else{
 
         printf("%4.2f ", mat.values[i][j]);
-        
+
       }
     }
   }
@@ -40,7 +40,7 @@ double print_time_file(double time, FILE* arquivo){
 void matrix_print_file(Matrix mat, FILE* arquivo){
 
   for(int i=0; i < mat.m; i++){
-    
+
     for(int j=0; j < mat.n; j++){
 
       if(j == 0){
@@ -53,7 +53,7 @@ void matrix_print_file(Matrix mat, FILE* arquivo){
       }else{
 
         fprintf(arquivo, "%4.2f,", mat.values[i][j]);
-        
+
       }
     }
   }
@@ -148,7 +148,7 @@ Matrix matrix_mult(Matrix mat1, Matrix mat2){
   Matrix mat3 = matrix_zeros("resultante", mat1.m, mat2.n);
 
   if(mat1.n != mat2.m){
-    printf("Matrizes tem tamanhos incompativeis de linhas e colunas\n");
+    printf("Matrizes %s e %s tem tamanhos incompativeis de linhas e colunas\n", mat1.name, mat2.name);
     printf("operacao de multiplicacao nao pode ser realizada.\n");
     return mat3;
   }else {
