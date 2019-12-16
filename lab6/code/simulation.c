@@ -265,10 +265,7 @@ Matrix getSimYm(Matrix ymptoAtual, Matrix ymptoAntigo, double time, double prevT
 */
 
 Matrix getSimV(Matrix ym, Matrix ymdot, Matrix y){
-  printf("getsimv\n" );
-  printf("%f\n", ym.values[0][0]);
-  printf("%f\n", ym.values[1][0]);
-
+  
 
   Matrix v = matrix_zeros("v", 2, 1);
 
@@ -343,10 +340,8 @@ void *modeloRefTask( void *args ){
 
     ref = getRef();
     ym = getYm();
-    printf("modeloRefThread t:  %f\n", t);
-    printf("ref\n");
-    printf("%f\n", ref.values[0][0]);
-    printf("%f\n", ref.values[1][0]);
+    //printf("modeloRefThread t:  %f\n", t);
+
 
 
     // saidas da thread: ym e ymdot

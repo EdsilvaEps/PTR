@@ -84,7 +84,7 @@ Matrix getU(void){
 
   Matrix u;
 
-  printf("get u \n" );
+  //printf("get u \n" );
 
 
   //sem_wait(&u_full);
@@ -98,7 +98,7 @@ Matrix getU(void){
 
 void setU(Matrix u){
 
-  printf("set u \n" );
+  //printf("set u \n" );
 
 
   //sem_wait(&u_empty);
@@ -114,7 +114,7 @@ void setU(Matrix u){
 
 Matrix getX(void){
 
-  printf("getx\n" );
+  //printf("getx\n" );
 
 
   Matrix x;
@@ -131,7 +131,7 @@ Matrix getX(void){
 
 void setX(Matrix x){
 
-  printf("setx\n" );
+  //printf("setx\n" );
 
   //sem_wait(&x_empty);
   pthread_mutex_lock(mutexX);
@@ -149,7 +149,7 @@ Matrix getY(void){
 
   Matrix y;
 
-  printf("gety\n" );
+  //printf("gety\n" );
 
 
   //sem_wait(&y_full);
@@ -163,7 +163,7 @@ Matrix getY(void){
 
 void setY(Matrix y){
 
-  printf("set y\n" );
+  //printf("set y\n" );
 
   //sem_wait(&y_empty);
   pthread_mutex_lock(mutexY);
@@ -181,7 +181,7 @@ Matrix getV(void){
 
   Matrix v;
 
-  printf("getv\n" );
+  //printf("getv\n" );
 
   //sem_wait(&v_full);
   pthread_mutex_lock(mutexV);
@@ -194,7 +194,7 @@ Matrix getV(void){
 
 void setV(Matrix v){
 
-  printf("setv\n" );
+  //printf("setv\n" );
 
   //sem_wait(&v_empty);
   pthread_mutex_lock(mutexV);
@@ -213,7 +213,7 @@ Matrix getYm(void){
 
   Matrix ym;
 
-  printf("get ym \n" );
+  //printf("get ym \n" );
 
   //sem_wait(&ym_full);
   pthread_mutex_lock(mutexYm);
@@ -225,7 +225,7 @@ Matrix getYm(void){
 }
 
 void setYm(Matrix ym){
-  printf("ym set\n" );
+  //printf("ym set\n" );
 
   //sem_wait(&ym_empty);
   pthread_mutex_lock(mutexYm);
@@ -258,7 +258,7 @@ Matrix getYmdot(void){
 
 void setYmdot(Matrix ymdot){
 
-  printf("ymdot assignment\n" );
+  //printf("ymdot assignment\n" );
   //sem_wait(&ymdot_empty);
   pthread_mutex_lock(mutexYmdot);
     Ymdot = ymdot;
@@ -274,7 +274,7 @@ void setYmdot(Matrix ymdot){
 
 Matrix getRef(void){
 
-  printf("ref gotten\n" );
+  //printf("ref gotten\n" );
 
 
   Matrix ref;
@@ -298,6 +298,6 @@ void setRef(Matrix ref){
   bufferRef[kref] = ref;
   kref++;
 
-  printf("ref assignmed\n" );
+  //printf("ref assignmed\n" );
 
 }
