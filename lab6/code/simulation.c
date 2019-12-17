@@ -1,4 +1,5 @@
 #include "simulation.h"
+#include "monitors.h"
 
 
 /* calcula a integral utilizando o método trapezoidal
@@ -265,7 +266,7 @@ Matrix getSimYm(Matrix ymptoAtual, Matrix ymptoAntigo, double time, double prevT
 */
 
 Matrix getSimV(Matrix ym, Matrix ymdot, Matrix y){
-  
+
 
   Matrix v = matrix_zeros("v", 2, 1);
 
@@ -379,6 +380,7 @@ void *modeloRefTask( void *args ){
     clock_gettime(CLOCK_MONOTONIC, &finish_t1);
     elapsed_t1 = (finish_t1.tv_sec - start_t1.tv_sec);
     elapsed_t1 += (finish_t1.tv_nsec - start_t1.tv_nsec) / 1000000000.0;
+    addPeriodValue(MODELOREFTHREAD, elapsed_t1);
     //fprintf(thread1_timelog, "%f\n", elapsed);
     // TODO: open a file for this thread's timing
 
@@ -425,8 +427,8 @@ void *ControleTask( void *args ){
     clock_gettime(CLOCK_MONOTONIC, &finish);
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    addPeriodValue(CONTROLETHREAD, elapsed);
     //fprintf(thread1_timelog, "%f\n", elapsed);
-    // TODO: open a file for this thread's timing
 
 
   }
@@ -471,8 +473,9 @@ void *LinearizacaoTask( void *args ){
     clock_gettime(CLOCK_MONOTONIC, &finish);
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+
+    addPeriodValue(LINEARIZACAOTHREAD, elapsed);
     //fprintf(thread1_timelog, "%f\n", elapsed);
-    // TODO: open a file for this thread's timing
 
 
   }
@@ -519,6 +522,7 @@ void *RoboTask( void *args ){
     clock_gettime(CLOCK_MONOTONIC, &finish);
     elapsed = (finish.tv_sec - start.tv_sec);
     elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    addPeriodValue(ROBOTHREAD, elapsed);
     //fprintf(thread1_timelog, "%f\n", elapsed);
     // TODO: open a file for this thread's timing
 

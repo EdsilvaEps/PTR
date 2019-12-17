@@ -59,6 +59,12 @@ void initialize(){
    kymdot = 0;
    kref = 0;
 
+   // indices for the logging buffers
+   kthread1 = 0;
+   kthread2 = 0;
+   kthread3 = 0;
+   kthread4 = 0;
+
    sem_init(&u_full, 0, 0);
    sem_init(&x_full, 0, 0);
    sem_init(&y_full, 0, 0);
@@ -299,5 +305,38 @@ void setRef(Matrix ref){
   kref++;
 
   //printf("ref assignmed\n" );
+
+}
+
+// adiciona valores de periodo das threads para logging
+void addPeriodValue(int thread, double period){
+
+  switch (thread) {
+    case MODELOREFTHREAD:
+      bufferModeloRefThread[kthread1] = period;
+      kthread1++;
+      break;
+
+    case CONTROLETHREAD:
+      bufferControleThread[kthread2] = period;
+      kthread2++;
+      break;
+
+    case LINEARIZACAOTHREAD:
+      bufferLinearizacaoThread[kthread3] = period;
+      kthread3++;
+      break;
+
+    case ROBOTHREAD:
+      bufferRoboThread[kthread4] = period;
+      kthread4++;
+      break;
+
+    default:
+      printf("thread não especificada\n");
+      break;
+
+  }
+
 
 }

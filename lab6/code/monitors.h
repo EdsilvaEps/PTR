@@ -19,6 +19,11 @@
 #define REF1 Ref.values[0][0]
 #define REF2 Ref.values[1][0]
 
+#define MODELOREFTHREAD 1
+#define CONTROLETHREAD 2
+#define LINEARIZACAOTHREAD 3
+#define ROBOTHREAD 4
+
 
 Matrix U;
 Matrix X;
@@ -39,9 +44,17 @@ Matrix bufferYm[700];
 Matrix bufferYmdot[700];
 Matrix bufferRef[700];
 
-
 // indices of those buffers
 int ku,kx,ky,kv,kym,kymdot,kref;
+
+
+double bufferModeloRefThread[700];
+double bufferControleThread[700];
+double bufferLinearizacaoThread[700];
+double bufferRoboThread[700];
+
+// indices of the logging buffers
+int kthread1, kthread2, kthread3, kthread4;
 
 
 // semaphores
@@ -92,3 +105,6 @@ void setYmdot(Matrix ymdot);
 Matrix getRef(void);
 
 void setRef(Matrix ref);
+
+// adiciona valores de periodo das threads para logging
+void addPeriodValue(int thread, double period);

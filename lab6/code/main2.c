@@ -20,7 +20,10 @@ pthread_t linearizacaoThread;
 pthread_t roboThread;
 
 FILE* arquivo;
-FILE* threads_data;
+FILE* thread1_timelog;
+FILE* thread2_timelog;
+FILE* thread3_timelog;
+FILE* thread4_timelog;
 
 
 
@@ -88,7 +91,7 @@ int main(int argc, char const *argv[]) {
   double total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
   printf("Tempo total de execução %f\n", elapsed);
   printf("Tempo de CPU: %f\n", total_t);
-  printf("%d %d %d %d %d \n",kx, kref, ky, kym, kymdot );
+  //printf("%d %d %d %d %d \n",kx, kref, ky, kym, kymdot );
 
   //printf("%d %d %d \n",kx, kref, ky );
   //printf("%d %d %d %d %d \n",kx, kref, ky, kym, kymdot );
@@ -115,10 +118,36 @@ int main(int argc, char const *argv[]) {
 
   }
 
+  thread1_timelog = fopen("modeloRefThread.txt", "w+");
+  thread2_timelog = fopen("controleThread.txt", "w+");
+  thread3_timelog = fopen("linearizacaoThread.txt", "w+");
+  thread4_timelog = fopen("roboThread.txt", "w+");
+
+
+  int indices[] = {kthread1, kthread2, kthread3, kthread4};
+  for (int i = 0; i < 4; i++){
+    for (int k = 0; k < indices[i]; k++) {
+      if (i == 0) {
+        fprintf(thread1_timelog, "%f\n", bufferModeloRefThread[k]);
+      } else if(i == 1){
+        fprintf(thread2_timelog, "%f\n", bufferControleThread[k]);
+      } else if(i == 2){
+        fprintf(thread3_timelog, "%f\n", bufferLinearizacaoThread[k]);
+      } else if(i == 3){
+        fprintf(thread4_timelog, "%f\n", bufferRoboThread[k]);
+      } else printf("sem logs especificados\n");
+
+
+    }
+
+  }
+
 
   fclose(arquivo);
-  //fclose(thread1_timelog);
-  //fclose(thread2_timelog);
+  fclose(thread1_timelog);
+  fclose(thread2_timelog);
+  fclose(thread3_timelog);
+  fclose(thread4_timelog);
 
 
   return 0;
