@@ -1,0 +1,16 @@
+
+EXECUÇÃO EM SISTEMA NÃO-RT
+----------------------------------
+Sistema executado sem carga:
+
+  tempo de execução do programa: 20.118459
+
+  Média dos períodos de amostragem:
+    Thread Modelo Ref: 0.0501
+    Thread Controle : 0.0501
+    Thread Linearizacao : 0.0401
+    Thread Robo:   0.0301
+
+
+
+  tempo de execução do programa: 20.094887

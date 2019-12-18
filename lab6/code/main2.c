@@ -20,6 +20,7 @@ pthread_t linearizacaoThread;
 pthread_t roboThread;
 
 FILE* arquivo;
+FILE* robo_output;
 FILE* thread1_timelog;
 FILE* thread2_timelog;
 FILE* thread3_timelog;
@@ -98,7 +99,8 @@ int main(int argc, char const *argv[]) {
 
 
   arquivo = fopen("output.ascii", "w+");
-  fprintf(arquivo, " Refx, Refy, xc, yc, Theta, y1, y2 \n");
+  robo_output = fopen("robo_output.txt", "w+");
+  //fprintf(arquivo, " Refx, Refy, xc, yc, Theta, y1, y2 \n");
 
   for(int i = 0; i < kref; i++){
     //printf("%d\n",i );
@@ -118,6 +120,15 @@ int main(int argc, char const *argv[]) {
 
   }
 
+  for (int i = 0; i < kx; i++) {
+    Matrix X = bufferX[i];
+    Matrix Y = bufferY[i];
+
+
+    fprintf(robo_output, " %f, %f, %f, %f, %f\n", X1 , X2, X3, Y1, Y2);
+
+  }
+
   thread1_timelog = fopen("modeloRefThread.txt", "w+");
   thread2_timelog = fopen("controleThread.txt", "w+");
   thread3_timelog = fopen("linearizacaoThread.txt", "w+");
@@ -128,13 +139,13 @@ int main(int argc, char const *argv[]) {
   for (int i = 0; i < 4; i++){
     for (int k = 0; k < indices[i]; k++) {
       if (i == 0) {
-        fprintf(thread1_timelog, "%f\n", bufferModeloRefThread[k]);
+        fprintf(thread1_timelog, "0,0%6.0f\n", bufferModeloRefThread[k]*10000000);
       } else if(i == 1){
-        fprintf(thread2_timelog, "%f\n", bufferControleThread[k]);
+        fprintf(thread2_timelog, "0,0%6.0f\n", bufferControleThread[k]*10000000);
       } else if(i == 2){
-        fprintf(thread3_timelog, "%f\n", bufferLinearizacaoThread[k]);
+        fprintf(thread3_timelog, "0,0%6.0f\n", bufferLinearizacaoThread[k]*10000000);
       } else if(i == 3){
-        fprintf(thread4_timelog, "%f\n", bufferRoboThread[k]);
+        fprintf(thread4_timelog, "0,0%6.0f\n", bufferRoboThread[k]*10000000);
       } else printf("sem logs especificados\n");
 
 

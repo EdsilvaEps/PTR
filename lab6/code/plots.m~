@@ -1,0 +1,28 @@
+clear all
+
+ref_data = load('output.ascii');
+refx = ref_data(:,1);
+refy = ref_data(:,2);
+
+t_120 = 1:0.120:20;
+t_30 = 1:0.03:20;
+
+%  Refx, Refy, xc, yc, Theta, y1, y2 
+
+% printando Referencia
+f = figure();
+plot(t_120, refx(1:length(t_120)));
+grid on 
+hold on
+plot(t_120, refy(1:length(t_120)));
+xlabel('tempo em segundos');
+legend('ref x', 'ref y');
+title('Referencia');
+
+% printando x,y
+output_data = load('robo_output.txt');
+x1 = 
+
+h = figure();
+
+%saveas(f, 'referencia.jpg');
